@@ -3,8 +3,9 @@
 ## 🚀 Inicio Rápido
 
 ### Para compilar la aplicación:
+
 ```bash
-cd /home/angel/Proyect/app_control
+cd ~/app_control
 flutter pub get
 flutter run
 ```
@@ -12,6 +13,7 @@ flutter run
 ## 📋 Características
 
 ### 1. **Nueva Venta** (Pestaña Izquierda)
+
 - Selecciona productos del catálogo izquierdo
 - Cada clic agrega una unidad al carrito
 - Ingresa nombre del cliente (obligatorio)
@@ -20,6 +22,7 @@ flutter run
 - El stock se actualiza automáticamente
 
 **Formas de Pago disponibles:**
+
 - Efectivo
 - Transferencia
 - Depósito
@@ -27,6 +30,7 @@ flutter run
 - Cortesía
 
 ### 2. **Inventario** (Pestaña Central)
+
 - **Crear Producto**: Botón verde en la esquina superior derecha
   - Nombre (obligatorio)
   - Precio (obligatorio)
@@ -45,14 +49,17 @@ flutter run
   - Requiere confirmación
 
 **Indicadores:**
+
 - Stock verde: >= 10 unidades
 - Stock rojo: < 10 unidades
 
 ### 3. **Reportes** (Pestaña Derecha)
+
 - **Filtro de Fechas**: Selecciona rango de fechas
 - **Botón Buscar**: Carga reportes del período
 
 **Información Mostrada:**
+
 - Resumen con totales:
   - Total de ventas realizadas
   - Ingresos totales
@@ -63,6 +70,7 @@ flutter run
 ## 💾 Base de Datos
 
 La aplicación usa SQLite local. Los datos se guardan en:
+
 - **Windows/Linux**: `~/.local/share/sistema_inventario.db`
 - **Android**: Base de datos del app
 
@@ -113,6 +121,7 @@ No requiere internet ni servidor externo.
 ## 📞 Soporte
 
 Para reportar problemas o sugerencias, verifica:
+
 - Que Flutter está actualizado: `flutter upgrade`
 - Las dependencias: `flutter pub get`
 - No hay archivos dañados en `/lib`
