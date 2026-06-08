@@ -22,15 +22,13 @@ class _ReportesScreenState extends State<ReportesScreen> {
   @override
   void initState() {
     super.initState();
-    _fechaInicio = DateTime.now().subtract(const Duration(days: 30));
+    _fechaInicio = DateTime.now();
     _fechaFin = DateTime.now();
     _cargarReporte();
   }
 
   void _cargarReporte() {
-    context.read<VentaBloc>().add(
-          CargarReporteEvent(_fechaInicio, _fechaFin),
-        );
+    context.read<VentaBloc>().add(CargarReporteEvent(_fechaInicio, _fechaFin));
   }
 
   @override
@@ -272,9 +270,10 @@ class _ReportesScreenState extends State<ReportesScreen> {
                           });
                         },
                         child: Container(
-                          color: isExpanded
-                              ? Colors.blue.withValues(alpha: 0.1)
-                              : Colors.transparent,
+                          color:
+                              isExpanded
+                                  ? Colors.blue.withValues(alpha: 0.1)
+                                  : Colors.transparent,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 12,
@@ -288,8 +287,9 @@ class _ReportesScreenState extends State<ReportesScreen> {
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  DateFormat('dd/MM/yyyy HH:mm')
-                                      .format(venta.fecha),
+                                  DateFormat(
+                                    'dd/MM/yyyy HH:mm',
+                                  ).format(venta.fecha),
                                   style: const TextStyle(fontSize: 12),
                                 ),
                               ),
@@ -346,8 +346,9 @@ class _ReportesScreenState extends State<ReportesScreen> {
                                         color: Colors.blue,
                                       ),
                                       onPressed: () async {
-                                        await InvoiceService
-                                            .generateAndPrintInvoice(venta);
+                                        await InvoiceService.generateAndPrintInvoice(
+                                          venta,
+                                        );
                                       },
                                       tooltip: 'Imprimir',
                                     ),
@@ -408,37 +409,44 @@ class _ReportesScreenState extends State<ReportesScreen> {
                                     DataColumn(label: Text('Precio Unit.')),
                                     DataColumn(label: Text('Total')),
                                   ],
-                                  rows: venta.productos
-                                      .map((producto) {
-                                        final subtotal = producto.cantidad *
+                                  rows:
+                                      venta.productos.map((producto) {
+                                        final subtotal =
+                                            producto.cantidad *
                                             producto.precioUnitario;
-                                        return DataRow(cells: [
-                                          DataCell(Text(
-                                            producto.nombreProducto ??
-                                                'Producto',
-                                          )),
-                                          DataCell(Text(
-                                            '${producto.cantidad}',
-                                          )),
-                                          DataCell(Text(
-                                            '\$${producto.precioUnitario.toStringAsFixed(2)}',
-                                          )),
-                                          DataCell(Text(
-                                            '\$${subtotal.toStringAsFixed(2)}',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
+                                        return DataRow(
+                                          cells: [
+                                            DataCell(
+                                              Text(
+                                                producto.nombreProducto ??
+                                                    'Producto',
+                                              ),
                                             ),
-                                          )),
-                                        ]);
-                                      })
-                                      .toList(),
+                                            DataCell(
+                                              Text('${producto.cantidad}'),
+                                            ),
+                                            DataCell(
+                                              Text(
+                                                '\$${producto.precioUnitario.toStringAsFixed(2)}',
+                                              ),
+                                            ),
+                                            DataCell(
+                                              Text(
+                                                '\$${subtotal.toStringAsFixed(2)}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      }).toList(),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      if (index < ventas.length - 1)
-                        const Divider(height: 1),
+                      if (index < ventas.length - 1) const Divider(height: 1),
                     ],
                   );
                 }),
@@ -478,10 +486,7 @@ class _ReportesScreenState extends State<ReportesScreen> {
   Widget _buildResumenItem(String label, String value) {
     return Column(
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
-        ),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         const SizedBox(height: 4),
         Text(
           value,
