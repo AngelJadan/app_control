@@ -105,63 +105,86 @@ class _InventarioScreenState extends State<InventarioScreen> {
             DataColumn(label: Text('Descripción')),
             DataColumn(label: Text('Acciones')),
           ],
-          rows: productos
-              .map((producto) => DataRow(cells: [
-                    DataCell(Text(producto.id.toString())),
-                    DataCell(Text(producto.nombre)),
-                    DataCell(Text('\$${producto.precio.toStringAsFixed(2)}')),
-                    DataCell(
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+          rows:
+              productos
+                  .map(
+                    (producto) => DataRow(
+                      cells: [
+                        DataCell(Text(producto.id.toString())),
+                        DataCell(Text(producto.nombre)),
+                        DataCell(
+                          Text('\$${producto.precio.toStringAsFixed(2)}'),
                         ),
-                        decoration: BoxDecoration(
-                          color: producto.cantidad < 10
-                              ? Colors.red.shade100
-                              : Colors.green.shade100,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          producto.cantidad.toString(),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: producto.cantidad < 10
-                                ? Colors.red
-                                : Colors.green,
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  producto.cantidad < 10
+                                      ? Colors.red.shade100
+                                      : Colors.green.shade100,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              producto.cantidad.toString(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    producto.cantidad < 10
+                                        ? Colors.red
+                                        : Colors.green,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        DataCell(Text(producto.descripcion ?? '-')),
+                        DataCell(
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.add_box,
+                                  color: Colors.blue,
+                                ),
+                                tooltip: 'Aumentar Stock',
+                                onPressed:
+                                    () => _mostrarDialogoAumentarStock(
+                                      context,
+                                      producto,
+                                    ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.orange,
+                                ),
+                                tooltip: 'Editar',
+                                onPressed:
+                                    () => _mostrarDialogoEditarProducto(
+                                      context,
+                                      producto,
+                                    ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                                tooltip: 'Eliminar',
+                                onPressed:
+                                    () => _confirmarEliminar(context, producto),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    DataCell(Text(producto.descripcion ?? '-')),
-                    DataCell(
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.add_box, color: Colors.blue),
-                            tooltip: 'Aumentar Stock',
-                            onPressed: () =>
-                                _mostrarDialogoAumentarStock(context, producto),
-                          ),
-                          IconButton(
-                            icon:
-                                const Icon(Icons.edit, color: Colors.orange),
-                            tooltip: 'Editar',
-                            onPressed: () =>
-                                _mostrarDialogoEditarProducto(context, producto),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            tooltip: 'Eliminar',
-                            onPressed: () =>
-                                _confirmarEliminar(context, producto),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ]))
-              .toList(),
+                  )
+                  .toList(),
         ),
       ),
     );
@@ -172,90 +195,120 @@ class _InventarioScreenState extends State<InventarioScreen> {
     final precioController = TextEditingController();
     final cantidadController = TextEditingController();
     final descripcionController = TextEditingController();
+    String tipoSeleccionado = 'Bien';
+    final List<String> opcionesTipo = ['Bien', 'Activo', 'Parqueadero'];
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Crear Nuevo Producto'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre del Producto *',
-                  border: OutlineInputBorder(),
-                ),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Crear Nuevo Producto'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nombreController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nombre del Producto *',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: precioController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: 'Precio *',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: cantidadController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Cantidad Inicial *',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descripcionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Descripción (Opcional)',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: tipoSeleccionado,
+                    decoration: const InputDecoration(
+                      labelText: 'Tipo de Producto *',
+                      border: OutlineInputBorder(),
+                    ),
+                    items:
+                        opcionesTipo.map((String tipo) {
+                          return DropdownMenuItem<String>(
+                            value: tipo,
+                            child: Text(tipo),
+                          );
+                        }).toList(),
+                    onChanged: (String? nuevoValor) {
+                      // setState aquí pertenece al StatefulBuilder, actualizando solo el diálogo
+                      setState(() {
+                        tipoSeleccionado = nuevoValor!;
+                      });
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: precioController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: const InputDecoration(
-                  labelText: 'Precio *',
-                  border: OutlineInputBorder(),
-                ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar'),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: cantidadController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Cantidad Inicial *',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: descripcionController,
-                decoration: const InputDecoration(
-                  labelText: 'Descripción (Opcional)',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                onPressed: () {
+                  if (nombreController.text.isEmpty ||
+                      precioController.text.isEmpty ||
+                      cantidadController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Por favor completa los campos requeridos',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final producto = ProductoModel(
+                    nombre: nombreController.text.trim(),
+                    precio: double.parse(precioController.text),
+                    cantidad: int.parse(cantidadController.text),
+                    descripcion:
+                        descripcionController.text.trim().isEmpty
+                            ? null
+                            : descripcionController.text.trim(),
+                    tipo: tipoSeleccionado,
+                  );
+
+                  context.read<ProductoBloc>().add(
+                    CrearProductoEvent(producto),
+                  );
+                  Navigator.pop(context);
+                },
+                child: const Text('Crear'),
               ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            onPressed: () {
-              if (nombreController.text.isEmpty ||
-                  precioController.text.isEmpty ||
-                  cantidadController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Por favor completa los campos requeridos'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-                return;
-              }
-
-              final producto = ProductoModel(
-                nombre: nombreController.text.trim(),
-                precio: double.parse(precioController.text),
-                cantidad: int.parse(cantidadController.text),
-                descripcion: descripcionController.text.trim().isEmpty
-                    ? null
-                    : descripcionController.text.trim(),
-              );
-
-              context.read<ProductoBloc>().add(CrearProductoEvent(producto));
-              Navigator.pop(context);
-            },
-            child: const Text('Crear'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -267,54 +320,55 @@ class _InventarioScreenState extends State<InventarioScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Aumentar Stock'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Producto: ${producto.nombre}'),
-            Text('Stock Actual: ${producto.cantidad}'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: cantidadController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Cantidad a Agregar *',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-            onPressed: () {
-              if (cantidadController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Ingresa la cantidad'),
-                    backgroundColor: Colors.red,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Aumentar Stock'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Producto: ${producto.nombre}'),
+                Text('Stock Actual: ${producto.cantidad}'),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: cantidadController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Cantidad a Agregar *',
+                    border: OutlineInputBorder(),
                   ),
-                );
-                return;
-              }
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                onPressed: () {
+                  if (cantidadController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Ingresa la cantidad'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
 
-              context.read<ProductoBloc>().add(
+                  context.read<ProductoBloc>().add(
                     AumentarStockEvent(
                       productoId: producto.id!,
                       cantidadASumar: int.parse(cantidadController.text),
                     ),
                   );
-              Navigator.pop(context);
-            },
-            child: const Text('Aumentar'),
+                  Navigator.pop(context);
+                },
+                child: const Text('Aumentar'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -323,115 +377,147 @@ class _InventarioScreenState extends State<InventarioScreen> {
     ProductoModel producto,
   ) {
     final nombreController = TextEditingController(text: producto.nombre);
-    final precioController =
-        TextEditingController(text: producto.precio.toString());
-    final descripcionController =
-        TextEditingController(text: producto.descripcion);
+    final precioController = TextEditingController(
+      text: producto.precio.toString(),
+    );
+    final descripcionController = TextEditingController(
+      text: producto.descripcion,
+    );
+
+    String tipoSeleccionado = producto.tipo != null ? producto.tipo! : "Bien";
+    final List<String> opcionesTipo = ['Bien', 'Activo', 'Parqueadero'];
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Editar Producto'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre del Producto *',
-                  border: OutlineInputBorder(),
-                ),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Editar Producto'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nombreController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nombre del Producto *',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: precioController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: 'Precio *',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descripcionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Descripción (Opcional)',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: tipoSeleccionado,
+                    decoration: const InputDecoration(
+                      labelText: 'Tipo de Producto *',
+                      border: OutlineInputBorder(),
+                    ),
+                    items:
+                        opcionesTipo.map((String tipo) {
+                          return DropdownMenuItem<String>(
+                            value: tipo,
+                            child: Text(tipo),
+                          );
+                        }).toList(),
+                    onChanged: (String? nuevoValor) {
+                      // setState aquí pertenece al StatefulBuilder, actualizando solo el diálogo
+                      setState(() {
+                        tipoSeleccionado = nuevoValor!;
+                      });
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: precioController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: const InputDecoration(
-                  labelText: 'Precio *',
-                  border: OutlineInputBorder(),
-                ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar'),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: descripcionController,
-                decoration: const InputDecoration(
-                  labelText: 'Descripción (Opcional)',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                onPressed: () {
+                  if (nombreController.text.isEmpty ||
+                      precioController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Por favor completa los campos requeridos',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final productoActualizado = ProductoModel(
+                    id: producto.id,
+                    nombre: nombreController.text.trim(),
+                    precio: double.parse(precioController.text),
+                    cantidad: producto.cantidad,
+                    descripcion:
+                        descripcionController.text.trim().isEmpty
+                            ? null
+                            : descripcionController.text.trim(),
+                    tipo: tipoSeleccionado,
+                  );
+
+                  context.read<ProductoBloc>().add(
+                    EditarProductoEvent(productoActualizado),
+                  );
+                  Navigator.pop(context);
+                },
+                child: const Text('Guardar'),
               ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-            onPressed: () {
-              if (nombreController.text.isEmpty ||
-                  precioController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Por favor completa los campos requeridos'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-                return;
-              }
-
-              final productoActualizado = ProductoModel(
-                id: producto.id,
-                nombre: nombreController.text.trim(),
-                precio: double.parse(precioController.text),
-                cantidad: producto.cantidad,
-                descripcion: descripcionController.text.trim().isEmpty
-                    ? null
-                    : descripcionController.text.trim(),
-              );
-
-              context
-                  .read<ProductoBloc>()
-                  .add(EditarProductoEvent(productoActualizado));
-              Navigator.pop(context);
-            },
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
     );
   }
 
   void _confirmarEliminar(BuildContext context, ProductoModel producto) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar Eliminación'),
-        content: Text(
-          '¿Estás seguro de que deseas eliminar el producto "${producto.nombre}"?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Confirmar Eliminación'),
+            content: Text(
+              '¿Estás seguro de que deseas eliminar el producto "${producto.nombre}"?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () {
+                  context.read<ProductoBloc>().add(
+                    EliminarProductoEvent(producto.id!),
+                  );
+                  Navigator.pop(context);
+                },
+                child: const Text('Eliminar'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              context
-                  .read<ProductoBloc>()
-                  .add(EliminarProductoEvent(producto.id!));
-              Navigator.pop(context);
-            },
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
     );
   }
 }

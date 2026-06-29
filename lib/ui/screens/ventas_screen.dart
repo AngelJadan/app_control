@@ -23,12 +23,22 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
 
   final List<String> _formasPago = [
     'Efectivo',
+    'En factura',
+    'A crédito',
+    'Cortesía',
     'Transferencia',
     'Depósito',
-    'En factura',
-    'Cortesía',
   ];
   String _formaPagoSeleccionada = 'Efectivo';
+
+  // --- VARIABLES PARA EL FILTRO DE PRODUCTOS ---
+  String _filtroSeleccionado = 'Bien'; // Opción por defecto
+  final List<String> _opcionesFiltro = [
+    'Bien',
+    'Activo',
+    'Parqueadero',
+    'Todos',
+  ];
 
   final List<DetalleVentaModel> _carrito = [];
   double _totalVenta = 0.0;
@@ -51,8 +61,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     }
 
     setState(() {
-      int index =
-          _carrito.indexWhere((item) => item.productoId == producto.id);
+      int index = _carrito.indexWhere((item) => item.productoId == producto.id);
       if (index >= 0) {
         if (_carrito[index].cantidad < producto.cantidad) {
           _carrito[index] = DetalleVentaModel(
@@ -105,6 +114,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
       _carrito.clear();
       _totalVenta = 0.0;
       _formaPagoSeleccionada = 'Efectivo';
+      _filtroSeleccionado = 'Todos'; // Reiniciamos el filtro al limpiar
     });
   }
 
@@ -132,7 +142,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // PANEL IZQUIERDO: Catálogo de Productos
+            // PANEL IZQUIERDO: Catálogo de Productos con Filtro
             Expanded(
               flex: 4,
               child: Card(
@@ -146,7 +156,36 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                         'Productos Disponibles',
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
+
+                      // --- COMPONENTE DE SELECCIÓN (RADIO BUTTONS) ---
+                      Wrap(
+                        spacing: 8.0,
+                        runSpacing: 0.0,
+                        children:
+                            _opcionesFiltro.map((opcion) {
+                              return Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Radio<String>(
+                                    value: opcion,
+                                    // ignore: deprecated_member_use
+                                    groupValue: _filtroSeleccionado,
+                                    // ignore: deprecated_member_use
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _filtroSeleccionado = value!;
+                                      });
+                                    },
+                                  ),
+                                  Text(opcion),
+                                ],
+                              );
+                            }).toList(),
+                      ),
+                      const Divider(),
+                      const SizedBox(height: 8),
+
                       Expanded(
                         child: BlocBuilder<ProductoBloc, ProductoState>(
                           builder: (context, state) {
@@ -155,28 +194,42 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                                 child: CircularProgressIndicator(),
                               );
                             } else if (state is ProductosCargadosState) {
-                              if (state.productos.isEmpty) {
+                              // --- FILTRADO EN TIEMPO REAL ---
+                              final productosFiltrados =
+                                  state.productos.where((prod) {
+                                    if (_filtroSeleccionado == 'Todos')
+                                      return true;
+                                    // Compara ignorando mayúsculas y minúsculas por seguridad
+                                    return prod.tipo?.toLowerCase() ==
+                                        _filtroSeleccionado.toLowerCase();
+                                  }).toList();
+
+                              if (productosFiltrados.isEmpty) {
                                 return const Center(
-                                  child: Text('No hay productos disponibles'),
+                                  child: Text(
+                                    'No hay productos de esta categoría',
+                                  ),
                                 );
                               }
+
                               return ListView.builder(
-                                itemCount: state.productos.length,
+                                itemCount: productosFiltrados.length,
                                 itemBuilder: (context, index) {
-                                  final prod = state.productos[index];
+                                  final prod = productosFiltrados[index];
                                   return ListTile(
                                     title: Text(prod.nombre),
                                     subtitle: Text(
-                                      'Stock: ${prod.cantidad} unidades | \$${prod.precio.toStringAsFixed(2)}',
+                                      'Stock: ${prod.cantidad} un. | \$${prod.precio.toStringAsFixed(2)} ${prod.tipo != null ? "(${prod.tipo})" : ""}',
                                     ),
                                     trailing: IconButton(
                                       icon: const Icon(
                                         Icons.add_circle,
                                         color: Colors.blue,
                                       ),
-                                      onPressed: prod.cantidad > 0
-                                          ? () => _agregarAlCarrito(prod)
-                                          : null,
+                                      onPressed:
+                                          prod.cantidad > 0
+                                              ? () => _agregarAlCarrito(prod)
+                                              : null,
                                     ),
                                   );
                                 },
@@ -223,21 +276,23 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
-                        initialValue: _formaPagoSeleccionada,
+                        value: _formaPagoSeleccionada,
                         decoration: const InputDecoration(
                           labelText: 'Forma de Pago',
                           border: OutlineInputBorder(),
                         ),
-                        items: _formasPago
-                            .map(
-                              (forma) => DropdownMenuItem(
-                                value: forma,
-                                child: Text(forma),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (val) =>
-                            setState(() => _formaPagoSeleccionada = val!),
+                        items:
+                            _formasPago
+                                .map(
+                                  (forma) => DropdownMenuItem(
+                                    value: forma,
+                                    child: Text(forma),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged:
+                            (val) =>
+                                setState(() => _formaPagoSeleccionada = val!),
                       ),
                       const SizedBox(height: 12),
                       TextField(
@@ -255,47 +310,50 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                       const Divider(),
                       // Tabla o Lista del Carrito Actual
                       Expanded(
-                        child: _carrito.isEmpty
-                            ? const Center(
-                              child: Text(
-                                'El carrito está vacío',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            )
-                            : ListView.builder(
-                              itemCount: _carrito.length,
-                              itemBuilder: (context, index) {
-                                final item = _carrito[index];
-                                return ListTile(
-                                  dense: true,
-                                  title: Text(
-                                    item.nombreProducto ?? 'Producto',
+                        child:
+                            _carrito.isEmpty
+                                ? const Center(
+                                  child: Text(
+                                    'El carrito está vacío',
+                                    style: TextStyle(color: Colors.grey),
                                   ),
-                                  subtitle: Text(
-                                    '${item.cantidad}x \$${item.precioUnitario.toStringAsFixed(2)}',
-                                  ),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        '\$${(item.cantidad * item.precioUnitario).toStringAsFixed(2)}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                )
+                                : ListView.builder(
+                                  itemCount: _carrito.length,
+                                  itemBuilder: (context, index) {
+                                    final item = _carrito[index];
+                                    return ListTile(
+                                      dense: true,
+                                      title: Text(
+                                        item.nombreProducto ?? 'Producto',
                                       ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.remove_circle,
-                                          color: Colors.red,
-                                        ),
-                                        onPressed: () =>
-                                            _eliminarDelCarrito(item.productoId),
+                                      subtitle: Text(
+                                        '${item.cantidad}x \$${item.precioUnitario.toStringAsFixed(2)}',
                                       ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            '\$${(item.cantidad * item.precioUnitario).toStringAsFixed(2)}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.remove_circle,
+                                              color: Colors.red,
+                                            ),
+                                            onPressed:
+                                                () => _eliminarDelCarrito(
+                                                  item.productoId,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
                       ),
                       const Divider(),
                       // Resumen Final y Botón de Envío
@@ -309,8 +367,9 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                           ),
                           Text(
                             '\$${_totalVenta.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(
+                            style: Theme.of(
+                              context,
+                            ).textTheme.headlineSmall?.copyWith(
                               color: Colors.green,
                               fontWeight: FontWeight.bold,
                             ),
@@ -356,8 +415,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                             final nuevaVenta = VentaModel(
                               fecha: DateTime.now(),
                               total: _totalVenta,
-                              nombreCliente:
-                                  _clienteController.text.trim(),
+                              nombreCliente: _clienteController.text.trim(),
                               formaPago: _formaPagoSeleccionada,
                               observacion:
                                   _observacionController.text.trim().isEmpty

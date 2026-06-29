@@ -19,9 +19,30 @@ class DbHelper {
 
     return await openDatabase(
       path,
-      version: 1,
-      onCreate: _createDB,
+      version: 2,
       onConfigure: _onConfigure,
+      onCreate: (db, version) async {
+        // El onCreate se mantiene igual pero YA con el campo nuevo por si un usuario instala la app desde cero
+        await db.execute('''
+      CREATE TABLE productos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL UNIQUE,
+        precio REAL NOT NULL,
+        descripcion TEXT,
+        cantidad INTEGER NOT NULL,
+        tipo TEXT -- Añadido aquí para nuevos usuarios
+      )
+    ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        // 2. Este bloque se ejecutará SOLO en los usuarios que ya tenían la app instalada
+        if (oldVersion < 2) {
+          // Agrega la columna 'tipo' a la tabla existente
+          await db.execute('''
+          ALTER TABLE productos ADD COLUMN tipo TEXT;
+        ''');
+        }
+      },
     );
   }
 
@@ -72,6 +93,7 @@ class DbHelper {
       'precio': 1.25,
       'descripcion': 'Bebida refrescante',
       'cantidad': 50,
+      'tipo': 'Bien',
     });
 
     await db.insert('productos', {
@@ -79,6 +101,7 @@ class DbHelper {
       'precio': 0.45,
       'descripcion': 'Chocolate de mesa',
       'cantidad': 30,
+      'tipo': 'Bien',
     });
   }
 }
