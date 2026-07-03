@@ -15,13 +15,55 @@ class InvoiceService {
     final dateOnlyFormat = DateFormat('dd/MM/yyyy');
 
     double totalIngresos = 0;
+    double totalEfectivo = 0;
+    double totalTransferencia = 0;
+    double totalDeposito = 0;
+    double totalCortesia = 0;
+    double totalEnFactura = 0;
+
+    double cantidadProductosEfectivo = 0;
+    double cantidadProductosTransferencia = 0;
+    double cantidadProductosDeposito = 0;
+    double cantidadProductosCortesia = 0;
+    double cantidadProductosEnFactura = 0;
+
     int totalProductos = 0;
 
     for (var venta in ventas) {
-      totalIngresos += venta.total;
+      if (venta.formaPago == 'Efectivo') {
+        totalEfectivo += venta.total;
+        for (var producto in venta.productos) {
+          cantidadProductosEfectivo += producto.cantidad;
+        }
+      }
+      if (venta.formaPago == 'Transferencia') {
+        totalTransferencia += venta.total;
+        for (var producto in venta.productos) {
+          cantidadProductosTransferencia += producto.cantidad;
+        }
+      }
+      if (venta.formaPago == 'Depósito') {
+        totalDeposito += venta.total;
+        for (var producto in venta.productos) {
+          cantidadProductosDeposito += producto.cantidad;
+        }
+      }
+      if (venta.formaPago == 'Cortesía') {
+        totalCortesia += venta.total;
+        for (var producto in venta.productos) {
+          cantidadProductosCortesia += producto.cantidad;
+        }
+      }
+      if (venta.formaPago == 'En factura') {
+        totalEnFactura += venta.total;
+        for (var producto in venta.productos) {
+          cantidadProductosEnFactura += producto.cantidad;
+        }
+      }
       for (var producto in venta.productos) {
         totalProductos += producto.cantidad;
       }
+      totalIngresos += venta.total;
     }
 
     pdf.addPage(
@@ -110,22 +152,27 @@ class InvoiceService {
                     },
                     children: [
                       pw.TableRow(
-                        decoration:
-                            const pw.BoxDecoration(color: PdfColors.blue100),
+                        decoration: const pw.BoxDecoration(
+                          color: PdfColors.blue100,
+                        ),
                         children: [
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(8),
                             child: pw.Text(
                               'Total de Ventas',
-                              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                              style: pw.TextStyle(
+                                fontWeight: pw.FontWeight.bold,
+                              ),
                               textAlign: pw.TextAlign.center,
                             ),
                           ),
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(8),
                             child: pw.Text(
-                              'Total Ingresos',
-                              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                              'Total Ingresos (Sin forma de pago en Cortesía y Factura)',
+                              style: pw.TextStyle(
+                                fontWeight: pw.FontWeight.bold,
+                              ),
                               textAlign: pw.TextAlign.center,
                             ),
                           ),
@@ -133,7 +180,9 @@ class InvoiceService {
                             padding: const pw.EdgeInsets.all(8),
                             child: pw.Text(
                               'Productos Vendidos',
-                              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                              style: pw.TextStyle(
+                                fontWeight: pw.FontWeight.bold,
+                              ),
                               textAlign: pw.TextAlign.center,
                             ),
                           ),
@@ -171,6 +220,176 @@ class InvoiceService {
                           ),
                         ],
                       ),
+                      totalEfectivo > 0
+                          ? pw.TableRow(
+                            children: [
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  'En efectivo',
+                                  textAlign: pw.TextAlign.center,
+                                  style: const pw.TextStyle(fontSize: 12),
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  '\$${totalEfectivo.toStringAsFixed(2)}',
+                                  textAlign: pw.TextAlign.center,
+                                  style: pw.TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: pw.FontWeight.bold,
+                                    color: PdfColors.green800,
+                                  ),
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  '$cantidadProductosEfectivo',
+                                  textAlign: pw.TextAlign.center,
+                                  style: const pw.TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          )
+                          : pw.TableRow(children: []),
+                      totalTransferencia > 0
+                          ? pw.TableRow(
+                            children: [
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  'En transferencia',
+                                  textAlign: pw.TextAlign.center,
+                                  style: const pw.TextStyle(fontSize: 12),
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  '\$${totalTransferencia.toStringAsFixed(2)}',
+                                  textAlign: pw.TextAlign.center,
+                                  style: pw.TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: pw.FontWeight.bold,
+                                    color: PdfColors.green800,
+                                  ),
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  '$cantidadProductosTransferencia',
+                                  textAlign: pw.TextAlign.center,
+                                  style: const pw.TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          )
+                          : pw.TableRow(children: []),
+                      totalDeposito > 0
+                          ? pw.TableRow(
+                            children: [
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  'En depósito',
+                                  textAlign: pw.TextAlign.center,
+                                  style: const pw.TextStyle(fontSize: 12),
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  '\$${totalDeposito.toStringAsFixed(2)}',
+                                  textAlign: pw.TextAlign.center,
+                                  style: pw.TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: pw.FontWeight.bold,
+                                    color: PdfColors.green800,
+                                  ),
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  '$cantidadProductosDeposito',
+                                  textAlign: pw.TextAlign.center,
+                                  style: const pw.TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          )
+                          : pw.TableRow(children: []),
+                      totalCortesia > 0
+                          ? pw.TableRow(
+                            children: [
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  'Cortesía',
+                                  textAlign: pw.TextAlign.center,
+                                  style: const pw.TextStyle(fontSize: 12),
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  '\$${totalCortesia.toStringAsFixed(2)}',
+                                  textAlign: pw.TextAlign.center,
+                                  style: pw.TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: pw.FontWeight.bold,
+                                    color: PdfColors.green800,
+                                  ),
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  '$cantidadProductosCortesia',
+                                  textAlign: pw.TextAlign.center,
+                                  style: const pw.TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          )
+                          : pw.TableRow(children: []),
+                      totalEnFactura > 0
+                          ? pw.TableRow(
+                            children: [
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  'En factura',
+                                  textAlign: pw.TextAlign.center,
+                                  style: const pw.TextStyle(fontSize: 12),
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  '\$${totalEnFactura.toStringAsFixed(2)}',
+                                  textAlign: pw.TextAlign.center,
+                                  style: pw.TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: pw.FontWeight.bold,
+                                    color: PdfColors.green800,
+                                  ),
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                  '$cantidadProductosEnFactura',
+                                  textAlign: pw.TextAlign.center,
+                                  style: const pw.TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          )
+                          : pw.TableRow(children: []),
                     ],
                   ),
                 ],
@@ -183,10 +402,7 @@ class InvoiceService {
             // Detalle de ventas
             pw.Text(
               'DETALLE DE VENTAS',
-              style: pw.TextStyle(
-                fontSize: 14,
-                fontWeight: pw.FontWeight.bold,
-              ),
+              style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 8),
             ...ventas.map((venta) {
@@ -195,7 +411,9 @@ class InvoiceService {
                 padding: const pw.EdgeInsets.all(10),
                 decoration: pw.BoxDecoration(
                   border: pw.Border.all(color: PdfColors.grey400),
-                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                  borderRadius: const pw.BorderRadius.all(
+                    pw.Radius.circular(4),
+                  ),
                 ),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -254,8 +472,9 @@ class InvoiceService {
                       padding: const pw.EdgeInsets.only(top: 8),
                       child: pw.Table(
                         border: pw.TableBorder(
-                          horizontalInside:
-                              pw.BorderSide(color: PdfColors.grey200),
+                          horizontalInside: pw.BorderSide(
+                            color: PdfColors.grey200,
+                          ),
                         ),
                         columnWidths: {
                           0: const pw.FlexColumnWidth(2),

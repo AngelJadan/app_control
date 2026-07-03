@@ -24,7 +24,6 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
   final List<String> _formasPago = [
     'Efectivo',
     'En factura',
-    'A crédito',
     'Cortesía',
     'Transferencia',
     'Depósito',
