@@ -22,6 +22,15 @@ class ProductoBloc extends Bloc<ProductoEvent, ProductoState> {
     on<CrearProductoEvent>((event, emit) async {
       emit(ProductoLoadingState());
       try {
+        var productosConsultados = await repository.findProductoWhereName(
+          event.producto.nombre,
+        );
+        if (productosConsultados.isNotEmpty) {
+          emit(ProductoErrorState("Ya existe un producto con este nombre."));
+          final productos = await repository.obtenerProductos();
+          emit(ProductosCargadosState(productos));
+          return;
+        }
         await repository.crearProducto(event.producto);
         emit(ProductoOperacionExitoState("Producto creado correctamente"));
         // Automáticamente recargamos la lista actualizada
@@ -70,6 +79,20 @@ class ProductoBloc extends Bloc<ProductoEvent, ProductoState> {
         await repository.eliminarProducto(event.productoId);
         emit(ProductoOperacionExitoState("Producto eliminado permanentemente"));
         final productos = await repository.obtenerProductos();
+        emit(ProductosCargadosState(productos));
+      } catch (e) {
+        // SQLite arrojará un error si el producto ya está enlazado a una venta vieja (por integridad referencial)
+        emit(
+          ProductoErrorState(
+            "No se puede eliminar el producto porque tiene ventas asociadas en el historial.",
+          ),
+        );
+      }
+    });
+    on<FiltrarProductoNombreProductoEvent>((event, emit) async {
+      emit(ProductoLoadingState());
+      try {
+        final productos = await repository.findProductoWhereName(event.nombre);
         emit(ProductosCargadosState(productos));
       } catch (e) {
         // SQLite arrojará un error si el producto ya está enlazado a una venta vieja (por integridad referencial)

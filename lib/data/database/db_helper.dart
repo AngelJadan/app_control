@@ -19,54 +19,38 @@ class DbHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onConfigure: _onConfigure,
-      onCreate: (db, version) async {
-        // El onCreate se mantiene igual pero YA con el campo nuevo por si un usuario instala la app desde cero
-        await db.execute('''
+      onCreate: _onCreateDB,
+      onUpgrade: _onUpgradeDB,
+    );
+  }
+
+  Future<void> _onConfigure(Database db) async {
+    await db.execute('PRAGMA foreign_keys = ON'); // Habilitar llaves foráneas
+  }
+
+  // Se ejecuta solo en instalaciones desde cero (Versión 3 directa)
+  Future<void> _onCreateDB(Database db, int version) async {
+    // 1. Tabla de Productos
+    await db.execute('''
       CREATE TABLE productos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL UNIQUE,
         precio REAL NOT NULL,
         descripcion TEXT,
         cantidad INTEGER NOT NULL,
-        tipo TEXT -- Añadido aquí para nuevos usuarios
-      )
-    ''');
-      },
-      onUpgrade: (db, oldVersion, newVersion) async {
-        // 2. Este bloque se ejecutará SOLO en los usuarios que ya tenían la app instalada
-        if (oldVersion < 2) {
-          // Agrega la columna 'tipo' a la tabla existente
-          await db.execute('''
-          ALTER TABLE productos ADD COLUMN tipo TEXT;
-        ''');
-        }
-      },
-    );
-  }
-
-  Future _onConfigure(Database db) async {
-    await db.execute('PRAGMA foreign_keys = ON'); // Habilitar llaves foráneas
-  }
-
-  Future _createDB(Database db, int version) async {
-    // Tabla de Productos
-    await db.execute('''
-      CREATE TABLE productos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL UNIQUE,
-        precio REAL NOT NULL,
-        descripcion TEXT,
-        cantidad INTEGER NOT NULL
+        tipo TEXT
       )
     ''');
 
-    // Tabla de Ventas
+    // 2. Tabla de Ventas
     await db.execute('''
       CREATE TABLE ventas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         fecha TEXT NOT NULL,
+        subtotal REAL NOT NULL,
+        descuento REAL NOT NULL,
         total REAL NOT NULL,
         nombre_cliente TEXT NOT NULL,
         forma_pago TEXT NOT NULL,
@@ -74,7 +58,7 @@ class DbHelper {
       )
     ''');
 
-    // Tabla de Detalles de Ventas (Relación muchos-a-muchos)
+    // 3. Tabla de Detalles de Ventas
     await db.execute('''
       CREATE TABLE detalle_ventas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,7 +71,7 @@ class DbHelper {
       )
     ''');
 
-    // Insertar productos de prueba
+    // Datos iniciales de prueba
     await db.insert('productos', {
       'nombre': 'Coca-Cola 500ml',
       'precio': 1.25,
@@ -103,5 +87,24 @@ class DbHelper {
       'cantidad': 30,
       'tipo': 'Bien',
     });
+  }
+
+  // Se ejecuta si el usuario ya tenía la app en v1 o v2 y actualiza a v3
+  Future<void> _onUpgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // 1. Columna opcional en productos
+      await db.execute('''
+        ALTER TABLE productos ADD COLUMN tipo TEXT;
+      ''');
+    }
+    if (oldVersion < 3 && oldVersion > 1) {
+      // 2. Columnas obligatorias en ventas (requieren DEFAULT 0)
+      await db.execute('''
+        ALTER TABLE ventas ADD COLUMN subtotal REAL NOT NULL DEFAULT 0.0;
+      ''');
+      await db.execute('''
+        ALTER TABLE ventas ADD COLUMN descuento REAL NOT NULL DEFAULT 0.0;
+      ''');
+    }
   }
 }

@@ -235,6 +235,18 @@ class _ReportesScreenState extends State<ReportesScreen> {
                       ),
                       Expanded(
                         child: Text(
+                          'Subtotal',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          'Descuento',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
                           'Total',
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
@@ -304,6 +316,26 @@ class _ReportesScreenState extends State<ReportesScreen> {
                                 child: Text(
                                   venta.formaPago,
                                   style: const TextStyle(fontSize: 12),
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  '\$${venta.subtotal.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  '\$${venta.descuento.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
                                 ),
                               ),
                               Expanded(

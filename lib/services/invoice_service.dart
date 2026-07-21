@@ -422,7 +422,7 @@ class InvoiceService {
                       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       children: [
                         pw.Text(
-                          'Factura #${venta.id} - ${venta.nombreCliente}',
+                          'Documento #${venta.id} - ${venta.nombreCliente}',
                           style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                         ),
                         pw.Text(
@@ -438,6 +438,22 @@ class InvoiceService {
                         pw.Text(
                           'Pago: ${venta.formaPago}',
                           style: const pw.TextStyle(fontSize: 10),
+                        ),
+                        pw.Text(
+                          'Subtotal: \$${venta.subtotal.toStringAsFixed(2)}',
+                          style: pw.TextStyle(
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.green800,
+                          ),
+                        ),
+                        pw.Text(
+                          'Descuento: \$${venta.descuento.toStringAsFixed(2)}',
+                          style: pw.TextStyle(
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.green800,
+                          ),
                         ),
                         pw.Text(
                           'Total: \$${venta.total.toStringAsFixed(2)}',

@@ -40,6 +40,10 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
   ];
 
   final List<DetalleVentaModel> _carrito = [];
+
+  final TextEditingController _descuento = TextEditingController(text: "0");
+
+  double _subtotal = 0;
   double _totalVenta = 0.0;
 
   @override
@@ -99,11 +103,29 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     });
   }
 
+  void aplicarDescuento() {
+    try {
+      var descuentoTemporal =
+          (_descuento.text.isEmpty ? 0 : double.parse(_descuento.text));
+      if (descuentoTemporal <= _subtotal) {
+        _totalVenta = _subtotal - descuentoTemporal;
+      } else {
+        _totalVenta = _subtotal;
+        _descuento.text = "0";
+      }
+    } catch (e) {
+      _descuento.text = "0";
+      _totalVenta = _subtotal;
+    }
+  }
+
   void _calcularTotal() {
-    _totalVenta = _carrito.fold(
+    _subtotal = _carrito.fold(
       0,
       (sum, item) => sum + (item.cantidad * item.precioUnitario),
     );
+    _descuento.text = "0";
+    _totalVenta = _subtotal;
   }
 
   void _limpiarFormulario() {
@@ -111,6 +133,8 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
       _clienteController.clear();
       _observacionController.clear();
       _carrito.clear();
+      _subtotal = 0;
+      _descuento.text = "0";
       _totalVenta = 0.0;
       _formaPagoSeleccionada = 'Efectivo';
       _filtroSeleccionado = 'Todos'; // Reiniciamos el filtro al limpiar
@@ -196,8 +220,9 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                               // --- FILTRADO EN TIEMPO REAL ---
                               final productosFiltrados =
                                   state.productos.where((prod) {
-                                    if (_filtroSeleccionado == 'Todos')
+                                    if (_filtroSeleccionado == 'Todos') {
                                       return true;
+                                    }
                                     // Compara ignorando mayúsculas y minúsculas por seguridad
                                     return prod.tipo?.toLowerCase() ==
                                         _filtroSeleccionado.toLowerCase();
@@ -275,7 +300,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
-                        value: _formaPagoSeleccionada,
+                        initialValue: _formaPagoSeleccionada,
                         decoration: const InputDecoration(
                           labelText: 'Forma de Pago',
                           border: OutlineInputBorder(),
@@ -360,6 +385,69 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
+                            'SUBTOTAL:',
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            '\$${_subtotal.toStringAsFixed(2)}',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.headlineSmall?.copyWith(
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'DESCUENTO:',
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(width: 16),
+                          // Envolvemos el input en Expanded para que tome todo el ancho disponible
+                          Expanded(
+                            child: TextFormField(
+                              controller: _descuento,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              textAlign:
+                                  TextAlign
+                                      .end, // Alinea el número a la derecha con los precios
+                              style: Theme.of(
+                                context,
+                              ).textTheme.headlineSmall?.copyWith(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  aplicarDescuento();
+                                });
+                              },
+                              decoration: const InputDecoration(
+                                prefixText: '\$ ',
+                                isDense: true,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 8,
+                                ),
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
                             'TOTAL:',
                             style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.bold),
@@ -413,6 +501,8 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
 
                             final nuevaVenta = VentaModel(
                               fecha: DateTime.now(),
+                              subtotal: _subtotal,
+                              descuento: double.parse(_descuento.text),
                               total: _totalVenta,
                               nombreCliente: _clienteController.text.trim(),
                               formaPago: _formaPagoSeleccionada,

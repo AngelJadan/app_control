@@ -100,6 +100,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
           columns: const [
             DataColumn(label: Text('ID')),
             DataColumn(label: Text('Nombre')),
+            DataColumn(label: Text('Tipo')),
             DataColumn(label: Text('Precio')),
             DataColumn(label: Text('Stock')),
             DataColumn(label: Text('Descripción')),
@@ -112,6 +113,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
                       cells: [
                         DataCell(Text(producto.id.toString())),
                         DataCell(Text(producto.nombre)),
+                        DataCell(Text(producto.tipo.toString())),
                         DataCell(
                           Text('\$${producto.precio.toStringAsFixed(2)}'),
                         ),

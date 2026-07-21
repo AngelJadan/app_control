@@ -29,3 +29,8 @@ class EliminarProductoEvent extends ProductoEvent {
   final int productoId;
   EliminarProductoEvent(this.productoId);
 }
+
+class FiltrarProductoNombreProductoEvent extends ProductoEvent {
+  final String nombre;
+  FiltrarProductoNombreProductoEvent(this.nombre);
+}

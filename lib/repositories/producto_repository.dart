@@ -61,4 +61,18 @@ class ProductoRepository {
 
     return await db.delete('productos', where: 'id = ?', whereArgs: [id]);
   }
+
+  Future<List<ProductoModel>> findProductoWhereName(String nombre) async {
+    final db = await dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'productos',
+      where: 'nombre=?',
+      whereArgs: [nombre],
+    );
+
+    // Convertimos la lista de Maps de SQLite a una lista de objetos ProductoModel
+    return List.generate(maps.length, (i) {
+      return ProductoModel.fromMap(maps[i]);
+    });
+  }
 }
