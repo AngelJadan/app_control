@@ -10,6 +10,9 @@ class VentaModel {
   final String nombreCliente;
   final String
   formaPago; // Efectivo, Transferencia, Deposito, En factura, Cortesia
+  final bool
+  existeDevolucion; // Indica si la venta tiene una devolución asociada
+  final String? motivoDevolucion; // Motivo de la devolución, si existe
   final List<DetalleVentaModel> productos;
 
   VentaModel({
@@ -22,6 +25,8 @@ class VentaModel {
     required this.nombreCliente,
     required this.formaPago,
     required this.productos,
+    required this.existeDevolucion,
+    this.motivoDevolucion,
   });
 
   Map<String, dynamic> toMap() => {
@@ -33,6 +38,8 @@ class VentaModel {
     'observacion': observacion,
     'nombre_cliente': nombreCliente,
     'forma_pago': formaPago,
+    'existe_devolucion': existeDevolucion ? 1 : 0, // Convertir de bool a int
+    'motivo_devolucion': motivoDevolucion,
   };
 
   factory VentaModel.fromMap(
@@ -47,6 +54,8 @@ class VentaModel {
     observacion: map['observacion'],
     nombreCliente: map['nombre_cliente'],
     formaPago: map['forma_pago'],
+    existeDevolucion: map['existe_devolucion'] == 1, // Convertir de int a bool
+    motivoDevolucion: map['motivo_devolucion'],
     productos: productos,
   );
 }

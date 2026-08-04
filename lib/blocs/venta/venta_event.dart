@@ -7,6 +7,13 @@ class RealizarVentaEvent extends VentaEvent {
   RealizarVentaEvent(this.venta);
 }
 
+class RealizarDevolucionVentaEvent extends VentaEvent {
+  final int ventaId;
+  final String motivoDevolucion;
+
+  RealizarDevolucionVentaEvent(this.ventaId, this.motivoDevolucion);
+}
+
 class CargarReporteEvent extends VentaEvent {
   final DateTime fechaInicio;
   final DateTime fechaFin;

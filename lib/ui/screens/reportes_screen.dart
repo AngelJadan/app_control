@@ -349,7 +349,7 @@ class _ReportesScreenState extends State<ReportesScreen> {
                                 ),
                               ),
                               SizedBox(
-                                width: 80,
+                                width: 120,
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -384,6 +384,30 @@ class _ReportesScreenState extends State<ReportesScreen> {
                                       },
                                       tooltip: 'Imprimir',
                                     ),
+                                    venta.existeDevolucion
+                                        ? IconButton(
+                                          onPressed: () {},
+                                          icon: Icon(
+                                            Icons.undo,
+                                            size: 20,
+                                            color: Colors.grey,
+                                          ),
+                                          tooltip: 'Venta Devuelta',
+                                        )
+                                        : IconButton(
+                                          icon: const Icon(
+                                            Icons.undo,
+                                            size: 20,
+                                            color: Colors.red,
+                                          ),
+                                          onPressed: () {
+                                            _alertDialogDevolver(
+                                              context,
+                                              venta,
+                                            );
+                                          },
+                                          tooltip: 'Devolver Venta',
+                                        ),
                                   ],
                                 ),
                               ),
@@ -558,5 +582,60 @@ class _ReportesScreenState extends State<ReportesScreen> {
         _fechaFin = fecha;
       });
     }
+  }
+
+  void _alertDialogDevolver(BuildContext context, VentaModel venta) {
+    String motivoDevolucion = '';
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Realizar devolución de la venta #${venta.id}"),
+          content: TextField(
+            decoration: const InputDecoration(
+              labelText: 'Motivo de la devolución',
+            ),
+            onChanged: (value) => motivoDevolucion = value,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                if (motivoDevolucion.trim().isNotEmpty) {
+                  context.read<VentaBloc>().add(
+                    RealizarDevolucionVentaEvent(
+                      venta.id!,
+                      motivoDevolucion.trim(),
+                    ),
+                  );
+                  context.read<VentaBloc>().add(
+                    CargarReporteEvent(_fechaInicio, _fechaFin),
+                  );
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Devolución procesada con éxito.'),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Por favor, ingrese un motivo válido.'),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Confirmar Devolución'),
+            ),
+
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cerrar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

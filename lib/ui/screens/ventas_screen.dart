@@ -511,6 +511,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                                       ? null
                                       : _observacionController.text.trim(),
                               productos: _carrito,
+                              existeDevolucion: false,
                             );
 
                             context.read<VentaBloc>().add(

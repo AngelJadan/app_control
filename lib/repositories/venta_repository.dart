@@ -1,3 +1,5 @@
+import 'package:sqflite/sqflite.dart';
+
 import '../../data/database/db_helper.dart';
 import '../../data/models/venta_model.dart';
 import '../../data/models/detalle_venta_model.dart';
@@ -27,6 +29,37 @@ class VentaRepository {
           [item.cantidad, item.productoId],
         );
       }
+    });
+  }
+
+  Future<void> realizarDevolucionVenta(
+    int ventaId,
+    String motivoDevolucion,
+  ) async {
+    print('Iniciando transacción para devolución de venta con ID: $ventaId');
+
+    final db = await dbHelper.database;
+    await db.transaction((txn) async {
+      // 1. Insertar la devolución como una nueva venta con un flag especial
+      await txn.update(
+        'ventas',
+        {'existe_devolucion': 1, 'motivo_devolucion': motivoDevolucion},
+        where: 'id = ?',
+        whereArgs: [ventaId],
+      );
+      print('Marca de devolución actualizada para la venta ID: $ventaId');
+      for (var detalle in await _obtenerDetallesVenta(ventaId, txn)) {
+        // 2. Devolver los productos al inventario
+        await txn.execute(
+          '''
+          UPDATE productos 
+          SET cantidad = cantidad + ? 
+          WHERE id = ?
+        ''',
+          [detalle!.cantidad, detalle.productoId],
+        );
+      }
+      print('Productos devueltos al inventario para la venta ID: $ventaId');
     });
   }
 
@@ -70,5 +103,18 @@ class VentaRepository {
     }
 
     return ventas;
+  }
+
+  Future<Iterable<DetalleVentaModel?>> _obtenerDetallesVenta(
+    int ventaId,
+    Transaction txn,
+  ) async {
+    final List<Map<String, dynamic>> detallesMap = await txn.query(
+      'detalle_ventas',
+      where: 'venta_id = ?',
+      whereArgs: [ventaId],
+    );
+
+    return detallesMap.map((d) => DetalleVentaModel.fromMap(d));
   }
 }

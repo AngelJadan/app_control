@@ -17,6 +17,22 @@ class VentaBloc extends Bloc<VentaEvent, VentaState> {
       }
     });
 
+    on<RealizarDevolucionVentaEvent>((event, emit) async {
+      emit(VentaLoadingState());
+      try {
+        await repository.realizarDevolucionVenta(
+          event.ventaId,
+          event.motivoDevolucion,
+        );
+      } catch (e) {
+        emit(
+          VentaErrorState(
+            "Error al procesar la devolución de venta: ${e.toString()}",
+          ),
+        );
+      }
+    });
+
     on<CargarReporteEvent>((event, emit) async {
       emit(VentaLoadingState());
       try {

@@ -19,10 +19,10 @@ class DbHelper {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 1,
       onConfigure: _onConfigure,
       onCreate: _onCreateDB,
-      onUpgrade: _onUpgradeDB,
+      //onUpgrade: _onUpgradeDB,
     );
   }
 
@@ -54,7 +54,9 @@ class DbHelper {
         total REAL NOT NULL,
         nombre_cliente TEXT NOT NULL,
         forma_pago TEXT NOT NULL,
-        observacion TEXT
+        observacion TEXT,
+        existe_devolucion INTEGER NOT NULL DEFAULT 0,
+        motivo_devolucion TEXT DEFAULT NULL
       )
     ''');
 
@@ -90,21 +92,21 @@ class DbHelper {
   }
 
   // Se ejecuta si el usuario ya tenía la app en v1 o v2 y actualiza a v3
-  Future<void> _onUpgradeDB(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      // 1. Columna opcional en productos
-      await db.execute('''
-        ALTER TABLE productos ADD COLUMN tipo TEXT;
-      ''');
-    }
-    if (oldVersion < 3 && oldVersion > 1) {
-      // 2. Columnas obligatorias en ventas (requieren DEFAULT 0)
-      await db.execute('''
-        ALTER TABLE ventas ADD COLUMN subtotal REAL NOT NULL DEFAULT 0.0;
-      ''');
-      await db.execute('''
-        ALTER TABLE ventas ADD COLUMN descuento REAL NOT NULL DEFAULT 0.0;
-      ''');
-    }
-  }
+  //Future<void> _onUpgradeDB(Database db, int oldVersion, int newVersion) async {
+  //  if (oldVersion < 2) {
+  //    // 1. Columna opcional en productos
+  //    await db.execute('''
+  //      ALTER TABLE productos ADD COLUMN tipo TEXT;
+  //    ''');
+  //  }
+  //  if (oldVersion < 3 && oldVersion > 1) {
+  //    // 2. Columnas obligatorias en ventas (requieren DEFAULT 0)
+  //    await db.execute('''
+  //      ALTER TABLE ventas ADD COLUMN subtotal REAL NOT NULL DEFAULT 0.0;
+  //    ''');
+  //    await db.execute('''
+  //      ALTER TABLE ventas ADD COLUMN ;
+  //    ''');
+  //  }
+  //}
 }
