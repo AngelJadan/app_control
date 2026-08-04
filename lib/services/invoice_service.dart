@@ -20,6 +20,7 @@ class InvoiceService {
     double totalDeposito = 0;
     double totalCortesia = 0;
     double totalEnFactura = 0;
+    double totalDevolucion = 0;
 
     double cantidadProductosEfectivo = 0;
     double cantidadProductosTransferencia = 0;
@@ -64,6 +65,9 @@ class InvoiceService {
         totalProductos += producto.cantidad;
       }
       totalIngresos += venta.total;
+      if (venta.existeDevolucion) {
+        totalDevolucion += venta.total;
+      }
     }
 
     pdf.addPage(
@@ -120,6 +124,10 @@ class InvoiceService {
                             style: const pw.TextStyle(fontSize: 11),
                           ),
                         ],
+                      ),
+                      pw.Text(
+                        'Total devolucion: $totalDevolucion',
+                        style: const pw.TextStyle(fontSize: 11),
                       ),
                     ],
                   ),
@@ -471,6 +479,19 @@ class InvoiceService {
                         padding: const pw.EdgeInsets.only(top: 6),
                         child: pw.Text(
                           'Obs: ${venta.observacion}',
+                          style: const pw.TextStyle(
+                            fontSize: 9,
+                            color: PdfColors.grey700,
+                          ),
+                        ),
+                      ),
+                    pw.SizedBox(height: 8),
+                    if (venta.existeDevolucion &&
+                        venta.motivoDevolucion != null)
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(top: 6),
+                        child: pw.Text(
+                          'Motivo de devolución: ${venta.motivoDevolucion}',
                           style: const pw.TextStyle(
                             fontSize: 9,
                             color: PdfColors.grey700,
